@@ -1,0 +1,100 @@
+-- Buoi 3
+
+USE AdventureWorksDW2019
+
+SELECT ProductKey, 
+ListPrice,
+ProductSegmentation = 
+CASE 
+WHEN ListPrice IS NULL 
+THEN 'Undefined'
+WHEN ListPrice > 2000 
+THEN 'Premium'
+WHEN ListPrice >= 1000 
+THEN 'Normal'
+WHEN ListPrice < 1000 
+THEN 'Cheap'
+END
+FROM DimProduct
+
+----------------------------------------------------------------
+SELECT DC.CustomerKey, 
+CONCAT_WS(' ', DC.FirstName, DC.MiddleName, DC.LastName) AS CustomerFullName,
+DG.EnglishCountryRegionName,
+DG.StateProvinceName
+FROM DimCustomer AS DC LEFT JOIN DimGeography AS DG
+ON DC.GeographyKey = DG.GeographyKey;
+
+-- Bai tap
+
+-- Bai 1
+SELECT FS.SalesOrderNumber, 
+FS.SalesOrderLineNumber,
+FS.ProductKey,
+DT.SalesTerritoryCountry
+FROM FactInternetSales FS
+JOIN DimSalesTerritory DT 
+ON FS.SalesTerritoryKey = DT.SalesTerritoryKey
+WHERE FS.SalesAmount > 1000;
+
+-- Bai 2
+SELECT DP.ProductKey,
+DP.EnglishProductName,
+DP.Color
+FROM DimProduct DP
+JOIN DimProductSubcategory DPS 
+ON DP.ProductSubcategoryKey = DPS.ProductSubcategoryKey
+WHERE DPS.EnglishProductSubCategoryName LIKE '%Bikes%'
+AND FLOOR(DP.ListPrice) = 3399;
+
+-- Bai 3
+SELECT FIS.ProductKey,
+FIS.SalesOrderNumber,
+FIS.SalesAmount
+FROM FactInternetSales FIS
+JOIN DimPromotion DP 
+ON FIS.PromotionKey = DP.PromotionKey
+WHERE DP.DiscountPct >= 0.2;
+
+-- Bai 4
+SELECT DC.Phone,
+DC.FirstName + ' ' + ISNULL(DC.MiddleName + ' ', '') + DC.LastName AS FullName,
+DG.City
+FROM DimCustomer DC
+LEFT JOIN DimGeography DG 
+ON DC.GeographyKey = DG.GeographyKey
+WHERE DC.YearlyIncome > 150000
+AND DC.CommuteDistance IN ('0-1 Miles', '1-2 Miles', '2-5 Miles')
+
+-- Bai 5
+SELECT CustomerKey,
+-- a.
+CASE 
+WHEN YearlyIncome BETWEEN 0 AND 50000 THEN 'Low Income'
+WHEN YearlyIncome BETWEEN 50001 AND 90000 THEN 'Middle Income'
+WHEN YearlyIncome >= 90001 THEN 'High Income'
+ELSE 'Unknown Income'
+END AS YearlyInComeRange,
+-- b.
+CASE 
+WHEN DATEDIFF(YEAR, BirthDate, '2019-12-31') <= 39 THEN 'Young Adults'
+WHEN DATEDIFF(YEAR, BirthDate, '2019-12-31') BETWEEN 40 AND 59 THEN 'Middle-Aged Adults'
+WHEN DATEDIFF(YEAR, BirthDate, '2019-12-31') >= 60 THEN 'Old Adults'
+ELSE 'Unknown Age'
+END AS AgeRange
+FROM DimCustomer
+WHERE YearlyIncome IS NOT NULL
+AND BirthDate IS NOT NULL;
+
+-- Bai 6
+SELECT DISTINCT FIS.SalesOrderNumber
+FROM FactInternetSales FIS
+JOIN DimProduct DP ON FIS.ProductKey = DP.ProductKey
+WHERE DP.EnglishProductName LIKE '%Road%'
+AND DP.Color = 'Yellow'
+UNION ALL
+SELECT DISTINCT FRS.SalesOrderNumber
+FROM FactResellerSales FRS
+JOIN DimProduct DP ON FRS.ProductKey = DP.ProductKey
+WHERE DP.EnglishProductName LIKE '%Road%'
+AND DP.Color = 'Yellow'

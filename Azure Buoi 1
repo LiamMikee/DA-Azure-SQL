@@ -1,0 +1,74 @@
+-- Buoi 1
+
+USE AdventureWorksDW2019
+----------------------
+SELECT *
+FROM DimCustomer
+----------------------
+SELECT CustomerKey AS "Ma Khach Hang",
+FirstName AS "HO",
+LastName AS "Ten",
+MiddleName AS "Ten Dem", 
+EmailAddress AS "Dia Chi Email"
+FROM DimCustomer
+---------------------
+SELECT ListPrice
+FROM DimProduct
+ORDER BY ListPrice --DESC 
+ASC
+--------------------N, PERCENT
+SELECT TOP 10 PERCENT *
+FROM DimProduct
+
+SELECT DISTINCT Color
+FROM DimProduct
+
+-- BAI 1
+SELECT top 10 PERCENT CustomerKey, Title, Gender
+FROM DimCustomer
+
+--BAI 2 
+SELECT EmployeeKey, FirstName, MiddleName, LastName, FirstName + ' ' + LastName AS "FULLNAME"
+FROM DimEmployee
+
+--BAI 3
+SELECT CustomerKey, OrderQuantity, UnitPrice, OrderQuantity*UnitPrice AS "SaleAmount"
+FROM FactInternetSales
+----------------------------------------------------------------------------------------------
+
+
+--Bai 1
+SELECT EmployeeKey, FirstName, LastName, BaseRate, VacationHours, SickLeaveHours,
+FirstName + ' ' + LastName AS FullName, 
+BaseRate * VacationHours  AS VacationLeavePay,
+BaseRate * SickLeaveHours AS SickLeavePay,
+BaseRate * VacationHours + BaseRate * SickLeaveHours AS TotalLeavePay
+FROM DimEmployee
+
+
+--Bai 2
+SELECT SalesOrderNumber, ProductKey, OrderDate,
+OrderQuantity * UnitPrice AS TotalRevenue,
+ProductStandardCost + DiscountAmount AS TotalCost,
+OrderQuantity * UnitPrice - ProductStandardCost + DiscountAmount  AS Profit
+,((OrderQuantity * UnitPrice - ProductStandardCost + DiscountAmount)/ OrderQuantity * UnitPrice *100) AS "Profit Margin"
+FROM FactInternetSales
+
+
+--Bai 3
+SELECT MovementDate, ProductKey, 
+UnitsBalance + UnitsIn - UnitsOut AS NoProductEOD,
+(UnitsBalance + UnitsIn - UnitsOut) * UnitCost AS TotalCost
+FROM FactProductInventory
+
+
+--Bai 4
+SELECT DISTINCT EnglishCountryRegionName, City, StateProvinceName
+FROM DimGeography
+ORDER BY EnglishCountryRegionName ASC, City DESC
+
+
+--Bai 5
+SELECT TOP 10 PERCENT EnglishProductName
+FROM DimProduct
+ORDER BY ListPrice DESC

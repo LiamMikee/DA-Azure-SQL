@@ -1,0 +1,91 @@
+-- Buoi 2
+
+USE AdventureWorksDW2019
+
+SELECT *
+FROM DimProduct
+WHERE Color = 'Red'
+
+SELECT *
+From DimProduct
+--Where ListPrice >=100 AND ListPrice <=400  
+--WHERE ListPrice BETWEEN 100 AND 400
+
+SELECT *
+FROM DimProduct
+-- WHERE Color = 'Red' OR Color = 'Sliver'
+WHERE Color IN ('Red','Sliver')
+
+-- WHERE Name + LIKE + %(tat ca cac ki tu), + _(tung ki tu), +'[]' (trong khoan), + '{}' (Khac khoan)
+
+SELECT FirstName, MiddleName, LastName,
+FirstName + '' +ISNULL(MiddleName + ' ', ' ') + LastName AS FullName
+FROM DimEmployee
+
+SELECT FirstName, MiddleName, LastName
+FROM DimEmployee
+WHERE MiddleName is not NULL
+
+SELECT *
+FROM DimEmployee
+WHERE (DepartmentName =  'Tool Design' 
+OR Status is not NULL 
+OR StartDate BETWEEN '2009-01-01' and '2009-12-31')
+AND VacationHours >10
+
+-----------------------------------------------------------------
+
+--Bai 1
+SELECT *
+FROM FactInternetSales
+Where OrderDate >= '2011-01-01' 
+AND YEAR(ShipDate) = 2011
+
+--Bai 2
+SELECT ProductKey, ProductAlternateKey, EnglishProductName
+FROM DimProduct
+WHERE  ProductAlternateKey LIKE 'BK-[^T]%-[0-9][0-9]'
+AND Color IN ('Black', 'Red', 'White')
+
+--Bai 3
+SELECT *
+FROM DimProduct
+WHERE Color = 'Red'
+
+--Bai 4
+SELECT *
+FROM FactInternetSales
+WHERE ProductKey IN (
+SELECT ProductKey
+FROM DimProduct
+WHERE Color = 'Red')
+
+--Bai 5
+SELECT EmployeeKey, FirstName, LastName, MiddleName
+FROM DimEmployee
+WHERE MiddleName IS NOT NULL 
+AND LEN(Phone) = 12
+
+--Bai 6 
+SELECT EmployeeKey,
+-- a.
+FirstName + ' ' + MiddleName + ' ' + LastName AS FullName_C1,
+CONCAT(FirstName, ' ', MiddleName, ' ', LastName) AS FullName_C2,
+-- C1 bi NULL C2 thi ko bi
+-- b.
+DATEDIFF(YEAR, BirthDate, HireDate) 
+- CASE 
+WHEN MONTH(HireDate) < MONTH(BirthDate)
+OR (MONTH(HireDate) = MONTH(BirthDate) AND DAY(HireDate) < DAY(BirthDate))
+THEN 1 ELSE 0 
+END AS AgeHired,
+-- c.
+ DATEDIFF(YEAR, BirthDate, GETDATE()) 
+- CASE 
+WHEN MONTH(GETDATE()) < MONTH(BirthDate)
+OR (MONTH(GETDATE()) = MONTH(BirthDate) AND DAY(GETDATE()) < DAY(BirthDate))
+THEN 1 ELSE 0 
+END AS AgeNow,
+-- d.
+SUBSTRING(LoginID, CHARINDEX('\', LoginID) + 1, LEN(LoginID)) AS NameUser
+FROM DimEmployee

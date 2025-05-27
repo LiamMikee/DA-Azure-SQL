@@ -1,0 +1,90 @@
+-- Buoi 5
+
+USE AdventureWorksDW2019
+-- Bai 1
+SELECT COUNT(*) AS NoProducts
+FROM DimProduct;
+-- Bai 2
+SELECT MIN(ListPrice) AS MinPrice,
+MAX(ListPrice) AS MaxPrice,
+AVG(ListPrice) AS AvgPrice
+FROM DimProduct;
+-- Bai 3
+SELECT COUNT(*) AS TotalSales
+FROM FactInternetSales;
+
+-- Bai tap
+
+
+-- Bai 1
+SELECT Title,
+AVG(BaseRate) AS AverageBaseRate
+FROM DimEmployee
+GROUP BY Title;
+
+-- Bai 2
+SELECT ProductKey,
+OrderDate,
+SUM(OrderQuantity) AS TotalOrderQuantity
+FROM FactInternetSales
+GROUP BY ProductKey,
+OrderDate;
+
+-- Bai 3
+SELECT DPC.ProductCategoryKey AS CategoryKey,
+DPC.EnglishProductCategoryName AS EnglishCategoryName,
+SUM(FIS.SalesAmount) AS TotalRevenue,
+SUM(FIS.TotalProductCost) AS TotalCost,
+SUM(FIS.SalesAmount) - SUM(FIS.TotalProductCost) AS TotalProfit
+FROM FactInternetSales FIS
+LEFT JOIN DimProduct DP 
+ON FIS.ProductKey = DP.ProductKey
+LEFT JOIN DimProductSubcategory PSC 
+ON DP.ProductSubcategoryKey = PSC.ProductSubcategoryKey
+LEFT JOIN DimProductCategory DPC 
+ON PSC.ProductCategoryKey = DPC.ProductCategoryKey
+WHERE YEAR(FIS.OrderDate) = 2012
+GROUP BY DPC.ProductCategoryKey,
+DPC.EnglishProductCategoryName
+HAVING SUM(FIS.SalesAmount) > 5000;
+
+-- Bai 4
+SELECT 
+CASE 
+WHEN DP.Color IN ('Black', 'Silver') 
+THEN 'Basic'
+ELSE DP.Color
+END AS Color_group,
+SUM(FIS.SalesAmount) AS TotalRevenue
+FROM FactInternetSales FIS
+LEFT JOIN DimProduct DP 
+ON FIS.ProductKey = DP.ProductKey
+GROUP BY 
+CASE 
+WHEN DP.Color IN ('Black', 'Silver') 
+THEN 'Basic'
+ELSE DP.Color
+END;
+
+-- Bai 5
+WITH InternetSales_CTE AS (
+SELECT YEAR(OrderDate) AS SalesYear,
+MONTH(OrderDate) AS SalesMonth,
+SUM(SalesAmount) AS InternSales
+FROM FactInternetSales
+GROUP BY YEAR(OrderDate), MONTH(OrderDate)),
+ResellerSales_CTE AS (
+SELECT YEAR(OrderDate) AS SalesYear,
+MONTH(OrderDate) AS SalesMonth,
+SUM(SalesAmount) AS Reseller_Sales
+FROM FactResellerSales
+GROUP BY YEAR(OrderDate), MONTH(OrderDate))
+SELECT ISNULL(i.SalesYear, r.SalesYear) AS Year,
+ISNULL(i.SalesMonth, r.SalesMonth) AS Month,
+i.InternSales,
+r.Reseller_Sales
+FROM InternetSales_CTE i
+FULL JOIN ResellerSales_CTE r
+ON i.SalesYear = r.SalesYear 
+AND i.SalesMonth = r.SalesMonth
+ORDER BY Year DESC, Month ASC;

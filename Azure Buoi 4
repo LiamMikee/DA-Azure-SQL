@@ -1,0 +1,97 @@
+-- Buoi 4
+
+USE AdventureWorksDW2019
+
+/* Viết câu truy vấn hiển thị tên tổ chức quản lí của 1 tổ chức
+ Ví dụ:
+ + North America Operations có tổ chức quản lí là: AdventureWorks Cycle
+ + Canadian Division có tổ chức quản lí là: North America Operations
+ + European Operations có tổ chức quản lí là: AdventureWorks Cycle
+ 
+ */
+ 
+SELECT Child.OrganizationKey
+ , Child.ParentOrganizationKey
+ , Child.OrganizationName
+ , Parent.OrganizationName AS Parent_NAME
+FROM DimOrganization AS Child
+LEFT JOIN DimOrganization AS Parent
+ON Child.ParentOrganizationKey = Parent.OrganizationKey
+ 
+
+SELECT Child.DepartmentGroupKey,
+Child.ParentDepartmentGroupKey,
+Parent.DepartmentGroupName AS Parent_Name
+FROM DimDepartmentGroup AS Child
+LEFT JOIN DimDepartmentGroup AS Parent
+ON Child.ParentDepartmentGroupKey = Parent.DepartmentGroupKey
+
+-- Bai tap
+
+
+-- Bai 1
+SELECT DP.ProductKey,
+DP.EnglishProductName
+FROM FactInternetSales FIS
+LEFT JOIN DimProduct DP 
+ON FIS.ProductKey = DP.ProductKey
+LEFT JOIN DimPromotion DPM 
+ON FIS.PromotionKey = DPM.PromotionKey
+WHERE DiscountPct >= 0.20;
+
+-- Bai 2
+SELECT DP.ProductKey,
+DP.EnglishProductName,
+DPS.EnglishProductSubCategoryName,
+DPC.EnglishProductCategoryName
+FROM DimProduct DP
+LEFT JOIN DimProductSubcategory DPS 
+ON DP.ProductSubcategoryKey = DPS.ProductSubcategoryKey
+LEFT JOIN DimProductCategory DPC 
+ON DPS.ProductCategoryKey = DPC.ProductCategoryKey
+WHERE DPC.EnglishProductCategoryName = 'Clothing';
+
+-- Bai 3
+-- Cach 1(IN):
+SELECT ProductKey,
+EnglishProductName,
+ListPrice
+FROM DimProduct
+WHERE ProductKey 
+NOT IN (
+SELECT DISTINCT ProductKey 
+FROM FactInternetSales
+WHERE ProductKey IS NOT NULL);
+
+-- Cach 2(JOIN):
+SELECT DP.ProductKey,
+DP.EnglishProductName,
+DP.ListPrice
+FROM DimProduct DP
+LEFT JOIN FactInternetSales FIS 
+ON DP.ProductKey = FIS.ProductKey
+WHERE FIS.ProductKey IS NULL;
+
+-- Bai 4
+SELECT DG1.DepartmentGroupKey,
+DG1.DepartmentGroupName,
+DG1.ParentDepartmentGroupKey,
+DG2.DepartmentGroupName AS ParentDepartmentGroupName
+FROM DimDepartmentGroup DG1
+LEFT JOIN DimDepartmentGroup DG2 
+ON DG1.ParentDepartmentGroupKey = DG2.DepartmentGroupKey;
+
+-- Bai 5
+SELECT DO1.OrganizationKey,
+DO1.OrganizationName,
+DO1.ParentOrganizationKey,
+DO2.OrganizationName AS ParentOrganizationName,
+FF.Amount
+FROM FactFinance FF
+JOIN DimOrganization DO1 
+ON FF.OrganizationKey = DO1.OrganizationKey
+LEFT JOIN DimOrganization DO2 
+ON DO1.ParentOrganizationKey = DO2.OrganizationKey
+LEFT JOIN DimScenario DS
+ON FF.ScenarioKey = DS.ScenarioKey
+WHERE DS.ScenarioName = 'Actual';
